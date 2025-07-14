@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Interactivo: Turismo Médico en Medellín</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Harmony - A base of warm neutrals (Stone) with a professional Slate for text and a calming Teal for accents and data visualization. -->
+    <!-- Application Structure Plan: A thematic, single-page dashboard structure is used instead of a linear report format. The goal is to allow users to quickly grasp key insights and then dive deeper into specific areas of interest. The structure consists of: 1) A 'Hero' section with headline stats for immediate impact. 2) A sticky navigation bar for easy access to thematic sections. 3) 'Panorama General': focusing on the 'what and how much' with charts on patient growth and economic impact. 4) 'Corazón de la Oferta': clarifying the 'what' of services with a donut chart and interactive content to show medical diversity. 5) 'La Ventaja Competitiva': explaining the 'why' through a three-pillar layout (Quality, Cost, Ecosystem) using comparative charts and interactive info-points. 6) 'Mirando al Futuro': outlining opportunities and strategic outlook. 7) 'Agendar Cita': a new section for users to book appointments for specific medical specialties with a simulated email confirmation. This structure guides the user from high-level data to detailed analysis, making a complex report digestible and engaging, now with added utility. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Patient arrival data (2021-2024). Goal: Show growth. Viz: Line Chart (Chart.js). Interaction: Tooltips on hover. Justification: Best for showing trends over time.
+        - Report Info: Economic impact (direct vs. spillover). Goal: Compare components of growth. Viz: Grouped Bar Chart (Chart.js). Interaction: Tooltips. Justification: Ideal for comparing multiple variables across categories.
+        - Report Info: Top medical specialties demand (%). Goal: Dispel myths, show diversity. Viz: Doughnut Chart (Chart.js). Interaction: Tooltips, highlights on hover. Justification: Perfect for showing parts of a whole.
+        - Report Info: Cost comparison (Medellín vs. USA). Goal: Quantify the value proposition. Viz: Horizontal Bar Chart (Chart.js). Interaction: Tooltips. Justification: Clear, high-impact comparison.
+        - Report Info: Key competitive factors (JCI, ecosystem). Goal: Organize qualitative strengths. Viz: HTML/CSS styled pillars with Unicode icons. Interaction: Clickable element for JCI details. Justification: Avoids clutter, provides layered information, and adheres to NO SVG rule.
+        - New Feature: Appointment Booking. Goal: Provide interactive utility. Viz: HTML form with dropdowns, date/time inputs. Interaction: Form submission, simulated email confirmation message. Justification: Adds direct user interaction, fulfilling the request for scheduling.
+        - Library/Method: All charts use Chart.js via CDN for responsive, canvas-based visualizations. All icons use Unicode characters. Form logic uses vanilla JavaScript.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        @media (max-width: 768px) { .chart-container { height: 300px; max-height: 350px; } }
+        .kpi-card { background-color: white; border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); text-align: center; transition: transform 0.2s; }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .nav-link { padding: 0.5rem 1rem; border-radius: 9999px; transition: background-color 0.3s, color 0.3s; }
+        .nav-link.active { background-color: #0d9488; color: white; }
+        .nav-link:not(.active):hover { background-color: #f1f5f9; }
+        .form-input { width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; font-size: 1rem; }
+        .form-label { font-weight: 600; color: #475569; margin-bottom: 0.5rem; display: block; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-lg shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <h1 class="text-xl md:text-2xl font-bold text-teal-700">Medellín Health City</h1>
+            <div id="nav-menu" class="hidden md:flex items-center space-x-2">
+                <a href="#panorama" class="nav-link text-sm font-semibold text-slate-600">Panorama</a>
+                <a href="#especialidades" class="nav-link text-sm font-semibold text-slate-600">Especialidades</a>
+                <a href="#competitividad" class="nav-link text-sm font-semibold text-slate-600">Competitividad</a>
+                <a href="#futuro" class="nav-link text-sm font-semibold text-slate-600">Futuro</a>
+                <a href="#agendar" class="nav-link text-sm font-semibold text-slate-600">Agendar Cita</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 md:py-12">
+        <section class="text-center mb-16">
+            <h2 class="text-4xl md:text-5xl font-bold text-slate-900 mb-4">Medellín: Capital del Turismo de Salud Global</h2>
+            <p class="max-w-3xl mx-auto text-lg text-slate-600 mb-10">
+                Descubre a través de datos interactivos cómo Medellín se ha consolidado como un líder mundial en turismo médico, combinando atención de élite, costos competitivos y una experiencia integral para el paciente.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+                <div class="kpi-card">
+                    <div class="text-4xl font-bold text-teal-600">23,323</div>
+                    <p class="text-slate-500 mt-2">Pacientes Internacionales en 2024</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="text-4xl font-bold text-teal-600">15%</div>
+                    <p class="text-slate-500 mt-2">Crecimiento Anual Compuesto (14 años)</p>
+                </div>
+                <div class="kpi-card">
+                    <div class="text-4xl font-bold text-teal-600">$109.9B</div>
+                    <p class="text-slate-500 mt-2">Impacto Económico Total en 2024 (COP)</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="panorama" class="pt-20 -mt-20 mb-16">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">Panorama General: Crecimiento Exponencial</h3>
+                <p class="max-w-2xl mx-auto mt-4 text-slate-600">
+                    Esta sección ilustra el notable y resiliente crecimiento del turismo médico en Medellín. Observa la tendencia ascendente en la llegada de pacientes y el significativo impacto económico que esto genera, demostrando la fortaleza y estabilidad del sector.
+                </p>
+            </div>
+            <div class="grid md:grid-cols-2 gap-8 lg:gap-12 items-center">
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-semibold mb-4 text-center">Evolución de Pacientes Internacionales</h4>
+                    <div class="chart-container">
+                        <canvas id="patientGrowthChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h4 class="text-xl font-semibold mb-4 text-center">Impacto Económico Anual (COP Billones)</h4>
+                     <div class="chart-container">
+                        <canvas id="economicImpactChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="especialidades" class="pt-20 -mt-20 mb-16">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">Corazón de la Oferta: Más Allá de la Estética</h3>
+                 <p class="max-w-2xl mx-auto mt-4 text-slate-600">
+                    Contrario a la percepción popular, la demanda de servicios médicos en Medellín es amplia y diversificada. Esta sección desmitifica el enfoque del sector, mostrando que las ayudas diagnósticas y la oftalmología lideran el volumen de pacientes, reflejando una oferta de salud integral y de alta complejidad.
+                </p>
+            </div>
+            <div class="grid md:grid-cols-5 gap-8 items-center">
+                <div class="md:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+                     <h4 class="text-xl font-semibold mb-4 text-center">Top 5 Especialidades Solicitadas (2024)</h4>
+                     <div class="chart-container" style="height: 300px; max-height: 350px;">
+                        <canvas id="specialtiesChart"></canvas>
+                    </div>
+                </div>
+                <div class="md:col-span-3">
+                    <div class="space-y-4">
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <h4 class="text-lg font-semibold flex items-center"><span class="text-2xl mr-3 text-teal-600">&#129514;</span>Diversificación Real</h4>
+                            <p class="text-slate-600 mt-2">Mientras la cirugía plástica representa un importante 10%, el 59% de la demanda se concentra en ayudas diagnósticas, demostrando una madurez del mercado hacia necesidades médicas complejas y preventivas.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl shadow-md">
+                            <h4 class="text-lg font-semibold flex items-center"><span class="text-2xl mr-3 text-teal-600">&#127973;</span>Otras Áreas de Excelencia</h4>
+                            <p class="text-slate-600 mt-2">El reconocimiento internacional se extiende a cardiología, ortopedia, gastroenterología, tratamientos de fertilidad y odontología avanzada, consolidando una oferta médica completa.</p>
+                        </div>
+                         <div class="bg-white p-6 rounded-xl shadow-md">
+                            <h4 class="text-lg font-semibold flex items-center"><span class="text-2xl mr-3 text-teal-600">&#128200;</span>Tendencias Emergentes</h4>
+                            <p class="text-slate-600 mt-2">El sector innova constantemente con procedimientos como la rinoplastia ultrasónica y la explantación mamaria, manteniéndose a la vanguardia de las nuevas tecnologías y demandas del paciente.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="competitividad" class="pt-20 -mt-20 mb-16">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">La Ventaja Competitiva de Medellín</h3>
+                 <p class="max-w-2xl mx-auto mt-4 text-slate-600">
+                    ¿Por qué miles eligen Medellín cada año? El éxito de la ciudad se basa en tres pilares fundamentales: calidad y confianza internacional, una rentabilidad excepcional y un ecosistema de apoyo que garantiza una experiencia integral para el paciente.
+                </p>
+            </div>
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <div class="kpi-card text-left">
+                        <h4 class="text-xl font-bold flex items-center"><span class="text-3xl mr-4 text-teal-600">&#127941;</span>Calidad y Confianza Global</h4>
+                        <p class="mt-2 text-slate-600">Profesionales formados internacionalmente y tecnología de punta son el estándar. La acreditación <strong id="jci-info" class="text-teal-700 font-bold cursor-pointer underline decoration-dotted">Joint Commission International (JCI)</strong> en hospitales clave garantiza los más altos estándares de seguridad y calidad a nivel mundial.</p>
+                    </div>
+                    <div class="kpi-card text-left">
+                        <h4 class="text-xl font-bold flex items-center"><span class="text-3xl mr-4 text-teal-600">&#127758;</span>Ecosistema de Apoyo Integral</h4>
+                        <p class="mt-2 text-slate-600">El <strong class="text-slate-900">Clúster Medellín Health City</strong> y agencias especializadas orquestan toda la experiencia del paciente: desde la logística de viaje y alojamiento hasta el cuidado postoperatorio, asegurando un viaje médico sin estrés.</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                     <h4 class="text-xl font-semibold mb-4 text-center">Rentabilidad Inteligente: Ahorro vs. EE.UU.</h4>
+                     <div class="chart-container">
+                        <canvas id="costComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="futuro" class="pt-20 -mt-20 mb-16">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">Mirando Hacia el Futuro</h3>
+                <p class="max-w-2xl mx-auto mt-4 text-slate-600">
+                    Con una base sólida y una reputación global, Medellín está posicionada para un crecimiento aún mayor. Las proyecciones nacionales son ambiciosas, y la ciudad identifica oportunidades estratégicas claras para consolidar su liderazgo en el escenario mundial del turismo de salud.
+                </p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="kpi-card text-left">
+                    <h4 class="font-bold text-lg mb-2">Proyección Nacional</h4>
+                    <p class="text-slate-600">Colombia apunta a superar los <strong class="text-teal-600">$1,000 billones de pesos</strong> en ingresos por turismo médico para 2026. Medellín es el motor clave para alcanzar esta meta.</p>
+                </div>
+                 <div class="kpi-card text-left">
+                    <h4 class="font-bold text-lg mb-2">Inversión Tecnológica</h4>
+                    <p class="text-slate-600">Mantener la vanguardia en infraestructura y tecnología avanzada es crucial para atraer procedimientos de mayor complejidad y mantener la competitividad.</p>
+                </div>
+                <div class="kpi-card text-left">
+                    <h4 class="font-bold text-lg mb-2">Paquetes Integrados</h4>
+                    <p class="text-slate-600">La oportunidad reside en combinar servicios médicos con bienestar, rehabilitación y experiencias turísticas, creando una oferta de valor holística.</p>
+                </div>
+                <div class="lg:col-span-3 bg-teal-50 border-l-4 border-teal-500 p-6 rounded-r-lg">
+                    <h4 class="font-bold text-lg mb-2 text-teal-800">Oportunidad Estratégica Municipal</h4>
+                    <p class="text-teal-700">Aunque el sector privado lidera el impulso, la integración de metas cuantificables para el turismo médico en el plan de desarrollo de la ciudad podría catalizar una inversión y coordinación aún mayores, solidificando el liderazgo de Medellín a largo plazo.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="agendar" class="pt-20 -mt-20 mb-16">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl font-bold text-slate-900">Agendar Cita Médica</h3>
+                <p class="max-w-2xl mx-auto mt-4 text-slate-600">
+                    Utiliza este formulario para solicitar una cita en una de nuestras especialidades destacadas. Te enviaremos una confirmación temporal por correo electrónico.
+                </p>
+            </div>
+            <div class="max-w-xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+                <form id="appointmentForm" class="space-y-6">
+                    <div>
+                        <label for="specialty" class="form-label">Especialidad:</label>
+                        <select id="specialty" name="specialty" class="form-input" required>
+                            <option value="">Selecciona una especialidad</option>
+                            <option value="Ayudas Diagnósticas">Ayudas Diagnósticas</option>
+                            <option value="Oftalmología">Oftalmología</option>
+                            <option value="Cirugías Plásticas">Cirugías Plásticas</option>
+                            <option value="Laboratorios Clínicos">Laboratorios Clínicos</option>
+                            <option value="Chequeo Ejecutivo">Chequeo Ejecutivo</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="appointmentDate" class="form-label">Fecha:</label>
+                            <input type="date" id="appointmentDate" name="appointmentDate" class="form-input" required>
+                        </div>
+                        <div>
+                            <label for="appointmentTime" class="form-label">Hora:</label>
+                            <input type="time" id="appointmentTime" name="appointmentTime" class="form-input" required>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="patientName" class="form-label">Tu Nombre Completo:</label>
+                        <input type="text" id="patientName" name="patientName" class="form-input" placeholder="Ej: Juan Pérez" required>
+                    </div>
+                    <div>
+                        <label for="patientEmail" class="form-label">Tu Correo Electrónico:</label>
+                        <input type="email" id="patientEmail" name="patientEmail" class="form-input" value="pruebas12@yopmail.com" readonly>
+                    </div>
+                    <button type="submit" class="w-full bg-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-teal-700 transition duration-300 shadow-md">
+                        Confirmar Cita
+                    </button>
+                </form>
+                <div id="confirmationMessage" class="mt-6 p-4 bg-teal-100 text-teal-800 rounded-lg hidden">
+                    <p class="font-semibold">¡Cita Agendada con Éxito!</p>
+                    <p>Se ha enviado una confirmación temporal a <span class="font-bold">pruebas12@yopmail.com</span>.</p>
+                    <p class="text-sm mt-2">Revisa tu bandeja de entrada (o spam) para los detalles. En una aplicación real, este correo sería enviado por un servicio de backend.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-16 bg-slate-800 text-slate-300 py-6">
+        <div class="container mx-auto px-6 text-center text-sm">
+            <p>Visualización interactiva basada en el informe 'Atención pacientes internacionales' del Clúster Medellín Health City.</p>
+            <p>&copy; 2025. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <div id="jci-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full relative">
+            <button id="close-modal" class="absolute top-4 right-4 text-slate-500 hover:text-slate-800">&times;</button>
+            <h4 class="text-xl font-bold text-teal-700 mb-4">Acreditación Joint Commission International (JCI)</h4>
+            <p class="text-slate-600">La JCI es el estándar de oro a nivel mundial en seguridad y calidad de la atención médica. Esta acreditación significa que un hospital cumple con los mismos estándares rigurosos que las mejores instituciones de EE.UU. y Europa. Garantiza:</p>
+            <ul class="list-disc list-inside mt-4 space-y-2 text-slate-600">
+                <li>Protocolos de seguridad estrictos en cada etapa.</li>
+                <li>Personal altamente capacitado y en formación continua.</li>
+                <li>Menor riesgo de infecciones y complicaciones.</li>
+                <li>Atención centrada en el paciente, con ética y respeto.</li>
+            </ul>
+             <p class="text-sm mt-4 text-slate-500">Hospitales en Medellín con esta acreditación incluyen el Hospital Pablo Tobón Uribe, InSer e IQ InterQuirófanos.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const patientData = {
+                labels: ['2021', '2022', '2023', '2024'],
+                datasets: [{
+                    label: 'Pacientes Internacionales',
+                    data: [9900, 17622, 21000, 23323],
+                    borderColor: '#0d9488',
+                    backgroundColor: 'rgba(13, 148, 136, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#0d9488',
+                    pointBorderColor: '#fff',
+                    pointHoverRadius: 7,
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#0d9488'
+                }]
+            };
+
+            const economicData = {
+                labels: ['2023', '2024'],
+                datasets: [
+                    {
+                        label: 'Ingresos Directos (COP Billones)',
+                        data: [61.472, 64.463],
+                        backgroundColor: '#0d9488',
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Derrama Económica (COP Billones)',
+                        data: [25.004, 45.479],
+                        backgroundColor: '#99f6e4',
+                        borderRadius: 6
+                    }
+                ]
+            };
+            
+            const specialtiesData = {
+                labels: ['Ayudas Diagnósticas (59%)', 'Oftalmología (14%)', 'Cirugías Plásticas (10%)', 'Laboratorios Clínicos (7%)', 'Chequeo Ejecutivo (5%)'],
+                datasets: [{
+                    label: 'Demanda por Especialidad',
+                    data: [59, 14, 10, 7, 5],
+                    backgroundColor: ['#0d9488', '#2dd4bf', '#5eead4', '#99f6e4', '#ccfbf1'],
+                    hoverOffset: 4,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                }]
+            };
+
+            const costData = {
+                labels: ['Bypass Cardíaco', 'Prótesis de Rodilla', 'Implante Dental', 'Rinoplastia', 'Tratamiento FIV'],
+                datasets: [{
+                    label: 'Costo Promedio en Medellín (USD)',
+                    data: [25000, 12000, 900, 2500, 6000],
+                    backgroundColor: '#0d9488',
+                    borderColor: '#0f766e',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }, {
+                    label: 'Costo Promedio en EE.UU. (USD)',
+                    data: [130000, 50000, 3000, 7500, 15000],
+                    backgroundColor: '#a7f3d0',
+                    borderColor: '#6ee7b7',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            };
+
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            font: { size: 12, family: 'Inter' },
+                            padding: 20
+                        }
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: '#1e293b',
+                        titleFont: { size: 14, weight: 'bold', family: 'Inter' },
+                        bodyFont: { size: 12, family: 'Inter' },
+                        padding: 12,
+                        cornerRadius: 6,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                     label += new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(context.parsed.y * 1000000000);
+                                     if(context.chart.canvas.id === 'patientGrowthChart')
+                                        label = context.dataset.label + ': ' + new Intl.NumberFormat('es-CO').format(context.parsed.y);
+                                     if(context.chart.canvas.id === 'costComparisonChart')
+                                        label = context.dataset.label + ': ' + new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(context.parsed.x);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { color: '#64748b', font: { family: 'Inter' } },
+                        grid: { color: '#e2e8f0' }
+                    },
+                    x: {
+                        ticks: { color: '#64748b', font: { family: 'Inter' } },
+                        grid: { display: false }
+                    }
+                }
+            };
+            
+            const horizontalChartOptions = {
+                ...chartOptions,
+                indexAxis: 'y',
+                scales: {
+                     x: {
+                        beginAtZero: true,
+                        ticks: { 
+                            color: '#64748b', font: { family: 'Inter' },
+                            callback: function(value) { return '$' + (value / 1000) + 'k'; }
+                        },
+                        grid: { color: '#e2e8f0' }
+                    },
+                     y: {
+                        ticks: { color: '#64748b', font: { family: 'Inter' } },
+                        grid: { display: false }
+                    }
+                }
+            };
+
+
+            new Chart(document.getElementById('patientGrowthChart'), { type: 'line', data: patientData, options: chartOptions });
+            new Chart(document.getElementById('economicImpactChart'), { type: 'bar', data: economicData, options: chartOptions });
+            new Chart(document.getElementById('specialtiesChart'), { type: 'doughnut', data: specialtiesData, options: {...chartOptions, plugins: {...chartOptions.plugins, legend: { position: 'right' }}} });
+            new Chart(document.getElementById('costComparisonChart'), { type: 'bar', data: costData, options: horizontalChartOptions });
+
+            const jciInfo = document.getElementById('jci-info');
+            const jciModal = document.getElementById('jci-modal');
+            const closeModal = document.getElementById('close-modal');
+
+            jciInfo.addEventListener('click', () => {
+                jciModal.classList.remove('hidden');
+                jciModal.classList.add('flex');
+            });
+            closeModal.addEventListener('click', () => {
+                jciModal.classList.add('hidden');
+                jciModal.classList.remove('flex');
+            });
+            jciModal.addEventListener('click', (e) => {
+                if(e.target === jciModal){
+                    jciModal.classList.add('hidden');
+                    jciModal.classList.remove('flex');
+                }
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('main section');
+            window.addEventListener('scroll', () => {
+                let current = '';
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - 80) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').includes(current)) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            // Appointment booking logic
+            const appointmentForm = document.getElementById('appointmentForm');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+
+            appointmentForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                const specialty = document.getElementById('specialty').value;
+                const appointmentDate = document.getElementById('appointmentDate').value;
+                const appointmentTime = document.getElementById('appointmentTime').value;
+                const patientName = document.getElementById('patientName').value;
+                const patientEmail = document.getElementById('patientEmail').value;
+
+                // Simulate email sending
+                console.log('--- Simulación de Envío de Correo de Confirmación ---');
+                console.log('Para: ' + patientEmail);
+                console.log('Asunto: Confirmación de Cita Médica en Medellín Health City');
+                console.log('Cuerpo del Correo:');
+                console.log('Estimado/a ' + patientName + ',');
+                console.log('Su cita para ' + specialty + ' ha sido agendada para el ' + appointmentDate + ' a las ' + appointmentTime + '.');
+                console.log('Pronto nos pondremos en contacto para confirmar los detalles finales.');
+                console.log('Gracias por elegir Medellín Health City.');
+                console.log('----------------------------------------------------');
+
+                // Display confirmation message to the user
+                confirmationMessage.classList.remove('hidden');
+                confirmationMessage.classList.add('block');
+
+                // Optionally, clear the form after submission
+                appointmentForm.reset();
+            });
+        });
+    </script>
+</body>
+</html>
